@@ -1,0 +1,23 @@
+{
+  "name": "cakeBot",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/annikahanna/cakeBot.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/annikahanna/cakeBot/issues"
+  },
+  "homepage": "https://github.com/annikahanna/cakeBot#readme",
+  "dependencies": {
+    "request": "^2.88.0",
+    "telegraf": "^3.24.1"
+  }
+}
