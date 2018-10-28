@@ -14,7 +14,7 @@ bot.telegram.getMe().then((botInfo) => {
     console.log("Initialized", botInfo.username);
 });
 
-dataService.loadUsers();
+dataService.loadFiles();
 
 
 bot.command('start', ctx => {
@@ -23,29 +23,48 @@ bot.command('start', ctx => {
         "Hallo, ich bin der Bot zur durchgehenden Kuchenversorgung.");
 });
 
+bot.command('help', ctx => {
+    ctx.replyWithHTML(
+        "Hallo, ich bin der Bot zur durchgehenden Kuchenversorgung. Mein Prinzip ist relativ simpel, ich möchte gerne fair Kuchen verteilen. \n" +
+        "Jeder hat die Möglichkeit Kuchen mitzubringen und bekommt dafür Kuchen gutgeschrieben.\n" +
+        "Dafür muss zum Anfang die Größe der Gruppe über /setsize festgelegt werden. Wie oft du \"kostenlos\" Kuchen essen darfst hängt von dieser Größe ab.\n " +
+        "Gruppengröße = g; kostenloser Kuchen = k; n = wie oft Kuchen mitgebracht\n" +
+        "//k = n*g \n" +
+        "Man kann auch Kuchen durch Zutaten verdienen\n" +
+        " z = wie oft Zutaten gesponsort; k = 1/2 * z*g;\n" +
+        "Am Anafang bekommt jeder ein default Kontigent von g\n" +
+        "Es werden die folgenden Befehle genutz:" +
+        "/start - startet Bot\n" +
+        "/help - Hilfe\n" +
+        "/sharecake - Teile deinen Kuchen mit allen\n" +
+        "/takepiece - Du nimmst dir ein Stück Kuchen\n" +
+        "/sponsor - Du sponsorst eine Zutat\n" +
+        "/take - Du nimmst eine Zutat\n" +
+        "/setsize - Lege die Gruppengröße fest\n" +
+        "/bake - Wähle einen Kuchen aus den du backen willst\n" +
+        "/addcake - Füge einen Kuchen zur Kuchenwunschliste hinzu\n" +
+        "/cakelist - die Kuchenwunschliste wird angezeigt\n" +
+        "/ingredientlist - die Liste von verfügbaren Zutaten wird angezeigt");
+});
+
 bot.command('setsize', ctx => {
+    var groupSize = "";
     const message = ctx.message.text.split(" ");
     if (message.length > 1) {
-        var groupSize = "";
         for (let i = 1; i < message.length; i++) {
             groupSize = groupSize + " " + message[i];
         }
         groupSize = groupSize.trim();
-
-        ctx.replyWithHTML(
-            "Die Gruppengröße wurde auf " + groupSize + " gesetzt");
-        dataService.setGroupSize(ctx.chat.id, groupSize);
-    }
-    else {
-        "Du musst eine Zahl mitangeben um die Gruppengröße zu setzen"
+        if (groupSize = "") {
+            ctx.replyWithHTML(
+                "Du musst eine Zahl mitangeben um die Gruppengröße zu setzen");
+        } else {
+            ctx.replyWithHTML(
+                "Die Gruppengröße wurde auf " + groupSize + " gesetzt");
+            dataService.setGroupSize(ctx.chat.id, groupSize);
+        }
     }
 })
-
-//Das Prinzip ist relativ simpel...es soll ein faires Kuchenbacksystem entstehen. Jeder hat die Möglichkeit Kuchen mitzubringen und bekommt dafür Kuchen gutgeschrieben.
-// Dafür muss zum Anfang die Größe des Kuchenzirkels festgelegt werden. Wie oft ich "kostenlos" Kuchen essen darf hängt von dieser Größe ab. Zirkelgröße = g; kostenloser Kuchen = k; n = wie oft Kuchen mitgebracht
-//k = n*g ; man kann auch Kuchen durch Zutaten verdienen; z = wie oft Zutaten gesponsort; k = 1/2 * z*g;
-//Am Anafang bekommt jeder ein default Kontigent von g
-// Es soll eine Kuchenwunschliste geben, die abgearbeitet werden kann (vielleicht mit API Anbindung)
 
 bot.command('takepiece', ctx => {
     var freeCake = dataService.getFreeCake(ctx.chat.id, ctx.from.id);
@@ -74,27 +93,127 @@ bot.command('sharecake', ctx => {
 
 
 bot.command('sponsor', ctx => {
+    var ingredient = ""
     const message = ctx.message.text.split(" ");
     if (message.length > 1) {
-        ingredient = "";
         for (let i = 1; i < message.length; i++) {
             ingredient = ingredient + " " + message[i];
         }
         ingredient = ingredient.trim();
     }
+    if (ingredient == "") {
+        ctx.replyWithHTML(
+            "Du musst eine Zutat angeben.");
+    } else {
+        if (dataService.addIngredient(ingredient)) {
+            var freeCake = dataService.getFreeCake(ctx.chat.id, ctx.from.id);
+            var groupSize = dataService.getGroupSize(ctx.chat.id);
+            freeCake = parseInt(freeCake) + 0.5 * parseInt(groupSize);
+            dataService.setFreeCake(ctx.chat.id, ctx.from.id, freeCake);
+            ctx.replyWithHTML(
+                ctx.from.first_name + " (@" + ctx.from.username + ") stellt die Zutat " + ingredient + " zur Verfügung. Dir stehen nun " + freeCake + " freie Stücke zur Verfügung");
+        } else {
+            ctx.replyWithHTML(
+                ingredient + " steht schon auf der Zutatenliste");
+        }
 
-    var freeCake = dataService.getFreeCake(ctx.chat.id, ctx.from.id);
-    var groupSize = dataService.getGroupSize(ctx.chat.id);
-    freeCake = parseInt(freeCake) + 0.5 * parseInt(groupSize);
-    dataService.setFreeCake(ctx.chat.id, ctx.from.id, freeCake);
-    ctx.replyWithHTML(
-        ctx.from.first_name + " (@" + ctx.from.username + ") stellt die Zutat " + ingredient + " zur Verfügung. Wenn du die Zutat benötigst gib bitte /take ein. " + ctx.from.first_name +
-        ", dir stehen nun " + freeCake + " freie Stücke zur Verfügung");
+    }
 });
 
 bot.command('take', ctx => {
+    var ingredient = ""
+    const message = ctx.message.text.split(" ");
+    if (message.length > 1) {
+        for (let i = 1; i < message.length; i++) {
+            ingredient = ingredient + " " + message[i];
+        }
+        ingredient = ingredient.trim();
+    }
+    if (ingredient == "") {
+        ctx.replyWithHTML(
+            "Du musst die Zutat angeben, die du nehmen willst");
+    } else {
+        if (dataService.removeIngredient(ingredient)) {
+            ctx.replyWithHTML(
+                ctx.from.first_name + " (@" + ctx.from.username + ") nimmt die Zutat " + ingredient);
+        } else {
+            ctx.replyWithHTML(
+                ingredient + " steht nicht auf der Zutatenliste");
+        }
+    }
+});
+
+bot.command('addcake', ctx => {
+    var cake = ""
+    const message = ctx.message.text.split(" ");
+    if (message.length > 1) {
+        for (let i = 1; i < message.length; i++) {
+            cake = cake + " " + message[i];
+        }
+        cake = cake.trim();
+    }
+    if (cake == "") {
+        ctx.replyWithHTML(
+            "Du musst einen Kuchen angeben, den du dir wünscht");
+    } else {
+        if (dataService.addCake(cake)) {
+            ctx.replyWithHTML(
+                cake + " wurde auf die Kuchenwunschliste hinzugefügt");
+        }
+        else {
+            ctx.replyWithHTML(
+                cake + " steht schon auf der Kuchenwunschliste");
+        }
+
+    }
+});
+
+bot.command('bake', ctx => {
+    var cake = ""
+    const message = ctx.message.text.split(" ");
+    if (message.length > 1) {
+        for (let i = 1; i < message.length; i++) {
+            cake = cake + " " + message[i];
+        }
+        cake = cake.trim();
+    }
+    if (cake == "") {
+        ctx.replyWithHTML(
+            "Du musst einen Kuchen angeben, den du backen willst");
+    } else {
+        if (dataService.removeCake(cake)) {
+            ctx.replyWithHTML(
+                cake + " wurde von der Kuchenwunschliste entfernt, da " + ctx.from.first_name + " (@" + ctx.from.username + ") ihn backt.");
+        }
+        else {
+            ctx.replyWithHTML(
+                cake + " steht nicht auf der Kuchenwunschliste");
+        }
+
+    }
+});
+
+bot.command('cakelist', ctx => {
+    const cakes = dataService.getAllCakes();
+    var size = Object.keys(cakes.data).length;
+    var cakeListStr = ""
+    for (var i = 0; i < size; i++) {
+        cakeListStr = cakeListStr + "- " + cakes.data[i] + "\n"
+    }
     ctx.replyWithHTML(
-        ctx.from.first_name + " (@" + ctx.from.username + ") nimmt die Zutat");
+        "Es werden sich folgende Kuchen gewünscht:\n" + cakeListStr);
+
+});
+bot.command('ingredientlist', ctx => {
+    const ingredients = dataService.getAllIngredients();
+    var size = Object.keys(ingredients.data).length;
+    var ingredientListStr = ""
+    for (var i = 0; i < size; i++) {
+        ingredientListStr = ingredientListStr + "- " + ingredients.data[i] + "\n"
+    }
+    ctx.replyWithHTML(
+        "Es stehen folgende Zutaten zur Verfügung:\n" + ingredientListStr);
+
 });
 
 bot.startPolling();
