@@ -10,11 +10,11 @@
     "type": "git",
     "url": "git+https://github.com/annikahanna/cakeBot.git"
   },
-  "author": "",
-  "license": "ISC",
+  "author": "https://github.com/annikahanna"
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/annikahanna/cakeBot/issues"
-  },
+  },"
   "homepage": "https://github.com/annikahanna/cakeBot#readme",
   "dependencies": {
     "fs": "0.0.1-security",
