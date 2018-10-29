@@ -29,22 +29,29 @@ bot.command('help', ctx => {
         "Jeder hat die Möglichkeit Kuchen mitzubringen und bekommt dafür Kuchen gutgeschrieben.\n" +
         "Dafür muss zum Anfang die Größe der Gruppe über /setsize festgelegt werden. Wie oft du \"kostenlos\" Kuchen essen darfst hängt von dieser Größe ab.\n " +
         "Gruppengröße = g; kostenloser Kuchen = k; n = wie oft Kuchen mitgebracht\n" +
-        "//k = n*g \n" +
+        "k = n*g \n" +
         "Man kann auch Kuchen durch Zutaten verdienen\n" +
         " z = wie oft Zutaten gesponsort; k = 1/2 * z*g;\n" +
         "Am Anafang bekommt jeder ein default Kontigent von g\n" +
-        "Es werden die folgenden Befehle genutz:" +
+        "Es werden die folgenden Befehle genutz:\n" +
         "/start - startet Bot\n" +
         "/help - Hilfe\n" +
+        "/setsize - Lege die Gruppengröße fest\n" +
+        "/about - Info\n"+
         "/sharecake - Teile deinen Kuchen mit allen\n" +
         "/takepiece - Du nimmst dir ein Stück Kuchen\n" +
         "/sponsor - Du sponsorst eine Zutat\n" +
         "/take - Du nimmst eine Zutat\n" +
-        "/setsize - Lege die Gruppengröße fest\n" +
         "/bake - Wähle einen Kuchen aus den du backen willst\n" +
         "/addcake - Füge einen Kuchen zur Kuchenwunschliste hinzu\n" +
         "/cakelist - die Kuchenwunschliste wird angezeigt\n" +
         "/ingredientlist - die Liste von verfügbaren Zutaten wird angezeigt");
+});
+
+bot.command('about', ctx =>{
+   ctx.replyWithHTML(
+       "Das dazugehörige Repo findest du auf: https://github.com/annikahanna/cakeBot"
+   )
 });
 
 bot.command('setsize', ctx => {
@@ -55,10 +62,12 @@ bot.command('setsize', ctx => {
             groupSize = groupSize + " " + message[i];
         }
         groupSize = groupSize.trim();
-        if (groupSize = "") {
+        console.log(groupSize);
+        if (groupSize == "") {
             ctx.replyWithHTML(
                 "Du musst eine Zahl mitangeben um die Gruppengröße zu setzen");
         } else {
+            console.log(groupSize);
             ctx.replyWithHTML(
                 "Die Gruppengröße wurde auf " + groupSize + " gesetzt");
             dataService.setGroupSize(ctx.chat.id, groupSize);
@@ -105,7 +114,7 @@ bot.command('sponsor', ctx => {
         ctx.replyWithHTML(
             "Du musst eine Zutat angeben.");
     } else {
-        if (dataService.addIngredient(ingredient)) {
+        if (dataService.addIngredient(ingredient, ctx.chat.id)) {
             var freeCake = dataService.getFreeCake(ctx.chat.id, ctx.from.id);
             var groupSize = dataService.getGroupSize(ctx.chat.id);
             freeCake = parseInt(freeCake) + 0.5 * parseInt(groupSize);
@@ -133,7 +142,7 @@ bot.command('take', ctx => {
         ctx.replyWithHTML(
             "Du musst die Zutat angeben, die du nehmen willst");
     } else {
-        if (dataService.removeIngredient(ingredient)) {
+        if (dataService.removeIngredient(ingredient, ctx.chat.id)) {
             ctx.replyWithHTML(
                 ctx.from.first_name + " (@" + ctx.from.username + ") nimmt die Zutat " + ingredient);
         } else {
@@ -156,7 +165,7 @@ bot.command('addcake', ctx => {
         ctx.replyWithHTML(
             "Du musst einen Kuchen angeben, den du dir wünscht");
     } else {
-        if (dataService.addCake(cake)) {
+        if (dataService.addCake(cake, ctx.chat.id)) {
             ctx.replyWithHTML(
                 cake + " wurde auf die Kuchenwunschliste hinzugefügt");
         }
@@ -181,9 +190,9 @@ bot.command('bake', ctx => {
         ctx.replyWithHTML(
             "Du musst einen Kuchen angeben, den du backen willst");
     } else {
-        if (dataService.removeCake(cake)) {
+        if (dataService.removeCake(cake, ctx.chat.id)) {
             ctx.replyWithHTML(
-                cake + " wurde von der Kuchenwunschliste entfernt, da " + ctx.from.first_name + " (@" + ctx.from.username + ") ihn backt.");
+                cake + " wurde von der Kuchenwunschliste entfernt, da " + ctx.from.first_name + " (@" + ctx.from.username + ") den Kuchen backt.");
         }
         else {
             ctx.replyWithHTML(
@@ -194,7 +203,7 @@ bot.command('bake', ctx => {
 });
 
 bot.command('cakelist', ctx => {
-    const cakes = dataService.getAllCakes();
+    const cakes = dataService.getAllCakes(ctx.chat.id);
     var size = Object.keys(cakes.data).length;
     var cakeListStr = ""
     for (var i = 0; i < size; i++) {
@@ -205,7 +214,7 @@ bot.command('cakelist', ctx => {
 
 });
 bot.command('ingredientlist', ctx => {
-    const ingredients = dataService.getAllIngredients();
+    const ingredients = dataService.getAllIngredients(ctx.chat.id);
     var size = Object.keys(ingredients.data).length;
     var ingredientListStr = ""
     for (var i = 0; i < size; i++) {
