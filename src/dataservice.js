@@ -130,6 +130,7 @@ function assertGroupSize(uid) {
                 return true;
             }
             else {
+                users[uid].groupSize = {};
                 users[uid].groupSize.value = 1;
             }
         }
@@ -149,6 +150,28 @@ function assertGroupSize(uid) {
         };
         users[uid] = usr;
         saveUsers();
+    }
+}
+
+function assertCake(uid) {
+    if (cakes[uid]) {
+                return true;
+    }
+
+    else {
+        cakes[uid]={"data":{}};
+        saveCakes();
+    }
+}
+
+function assertIngredient(uid) {
+    if (ingredients[uid]) {
+        return true;
+    }
+
+    else {
+        ingredients[uid]={"data":{}};
+        saveIngredients();
     }
 }
 
@@ -174,45 +197,47 @@ function getGroupSize(uid) {
     return users[uid].groupSize.value;
 }
 
-function addCake(cake) {
-    var size = Object.keys(cakes.data).length;
+function addCake(cake, uid) {
+    assertCake(uid);
+    var size = Object.keys(cakes[uid].data).length;
     var newCakeList = {};
     var j = 0;
     console.log(size);
     for (var i = 0; i < size; i++) {
-        console.log(cakes.data[i]);
-        if (cakes.data[i] != cake) {
-            newCakeList[j] = cakes.data[i];
+        console.log(cakes[uid].data[i]);
+        if (cakes[uid].data[i] != cake) {
+            newCakeList[j] = cakes[uid].data[i];
             j = parseInt(j) + 1;
         }
     }
-    cakes.data = newCakeList;
-    var newSize = Object.keys(cakes.data).length;
+    cakes[uid].data = newCakeList;
+    var newSize = Object.keys(cakes[uid].data).length;
     if (size != newSize) {
         return false
     } else {
         newCakeList[j] = cake;
-        cakes.data = newCakeList;
+        cakes[uid].data = newCakeList;
         saveCakes();
         return true;
     }
 }
 
-function removeCake(cake) {
-    var size = Object.keys(cakes.data).length;
+function removeCake(cake, uid) {
+    assertCake(uid);
+    var size = Object.keys(cakes[uid].data).length;
     var newCakeList = {};
     var j = 0;
     console.log(size);
     for (var i = 0; i < size; i++) {
-        console.log(cakes.data[i])
-        if (cakes.data[i] != cake) {
-            newCakeList[j] = cakes.data[i];
+        console.log(cakes[uid].data[i])
+        if (cakes[uid].data[i] != cake) {
+            newCakeList[j] = cakes[uid].data[i];
             j = parseInt(j) + 1;
         }
     }
-    cakes.data = newCakeList;
+    cakes[uid].data = newCakeList;
     saveCakes();
-    var newSize = Object.keys(cakes.data).length;
+    var newSize = Object.keys(cakes[uid].data).length;
     if (size != newSize) {
         return true
     } else {
@@ -220,49 +245,54 @@ function removeCake(cake) {
     }
 }
 
-function getAllCakes(){
-    return cakes;
+function getAllCakes(uid){
+    assertCake(uid);
+    return cakes[uid];
 }
 
-function addIngredient(ingredient) {
-    var size = Object.keys(ingredients.data).length;
+function addIngredient(ingredient, uid) {
+    assertIngredient(uid);
+    var size = Object.keys(ingredients[uid].data).length;
     var newIngredientList = {};
     var j = 0;
     console.log(size);
     for (var i = 0; i < size; i++) {
-        console.log(ingredients.data[i]);
-        if (ingredients.data[i] != ingredient) {
-            newIngredientList[j] = ingredients.data[i];
+        console.log(ingredients[uid].data[i]);
+        if (ingredients[uid].data[i] != ingredient) {
+            newIngredientList[j] = ingredients[uid].data[i];
             j = parseInt(j) + 1;
         }
     }
-    ingredients.data = newIngredientList;
-    var newSize = Object.keys(ingredients.data).length;
+    ingredients[uid].data = newIngredientList;
+    var newSize = Object.keys(ingredients[uid].data).length;
     if (size != newSize) {
         return false
     } else {
+        console.log(ingredient);
         newIngredientList[j] = ingredient;
-        ingredients.data = newIngredientList;
+        console.log(newIngredientList);
+        ingredients[uid].data = newIngredientList;
         saveIngredients();
         return true;
     }
 }
 
-function removeIngredient(ingredient) {
-    var size = Object.keys(ingredients.data).length;
+function removeIngredient(ingredient, uid) {
+    assertIngredient(uid);
+    var size = Object.keys(ingredients[uid].data).length;
     var newIngredientList = {};
     var j = 0;
     console.log(size);
     for (var i = 0; i < size; i++) {
-        console.log(ingredients.data[i]);
-        if (ingredients.data[i] != ingredient) {
-            newIngredientList[j] = ingredients.data[i];
+        console.log(ingredients[uid].data[i]);
+        if (ingredients[uid].data[i] != ingredient) {
+            newIngredientList[j] = ingredients[uid].data[i];
             j = parseInt(j) + 1;
         }
     }
-    ingredients.data = newIngredientList;
+    ingredients[uid].data = newIngredientList;
     saveIngredients();
-    var newSize = Object.keys(ingredients.data).length;
+    var newSize = Object.keys(ingredients[uid].data).length;
     if (size != newSize) {
         return true
     } else {
@@ -270,8 +300,9 @@ function removeIngredient(ingredient) {
     }
 }
 
-function getAllIngredients(){
-    return ingredients;
+function getAllIngredients(uid){
+    assertIngredient(uid);
+    return ingredients[uid];
 }
 
 module.exports = {
