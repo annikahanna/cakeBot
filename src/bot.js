@@ -118,6 +118,9 @@ bot.command('sponsor', ctx => {
             var freeCake = dataService.getFreeCake(ctx.chat.id, ctx.from.id);
             var groupSize = dataService.getGroupSize(ctx.chat.id);
             freeCake = parseInt(freeCake) + 0.5 * parseInt(groupSize);
+            if(groupSize%2 !=0){
+                freeCake = parseInt(freeCake)+1;
+            }
             dataService.setFreeCake(ctx.chat.id, ctx.from.id, freeCake);
             ctx.replyWithHTML(
                 ctx.from.first_name + " (@" + ctx.from.username + ") stellt die Zutat " + ingredient + " zur Verfügung. Dir stehen nun " + freeCake + " freie Stücke zur Verfügung");
