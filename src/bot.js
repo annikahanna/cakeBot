@@ -63,7 +63,7 @@ bot.command('setsize', ctx => {
         }
         groupSize = groupSize.trim();
         console.log(groupSize);
-        if (groupSize == "") {
+        if (groupSize==""||groupSize.isNaN) {
             ctx.replyWithHTML(
                 "Du musst eine Zahl mitangeben um die Gruppengröße zu setzen");
         } else {
